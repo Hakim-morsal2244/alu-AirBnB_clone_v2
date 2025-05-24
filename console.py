@@ -298,13 +298,13 @@ class HBNBCommand(cmd.Cmd):
         # iterate through attr names and values
         for i, att_name in enumerate(args):
             # block only runs on even iterations
-            if (i % 2 == 0):
-                att_val = args[i + 1]  # following item is value
-                if not att_name:  # check for att_name
-                    print("** attribute name missing **")
-                    return
+            if i % 2 == 0:
+    att_val = args[i + 1]  # following item is value
+    if not att_name:  # check for att_name
+        print("** attribute name missing **")
+        return
 
-                
+                    return
                 if not att_val:  # check for att_value
                     print("** value missing **")
                     return
