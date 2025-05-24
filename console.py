@@ -219,7 +219,7 @@ class HBNBCommand(cmd.Cmd):
             args = args.partition(' ')
             if not att_name and args[0] != ' ':
                 att_name = args[0]
-            if args[2] and args[2][0] = = '\"':
+            if args[2] and args[2][0] == '\"':
                 att_val = args[2][1:args[2].find('\"', 1)]
             if not att_val and args[2]:
                 att_val = args[2].partition(' ')[0]
