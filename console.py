@@ -45,7 +45,7 @@ class HBNBCommand(cmd.Cmd):
 
         # scan for general formating - i.e '.', '(', ')'
         if not ('.' in line and '(' in line and ')' in line):
-        return line
+            return line
 
         try:  # parse line left to right
             pline = line[:]  # parsed line
