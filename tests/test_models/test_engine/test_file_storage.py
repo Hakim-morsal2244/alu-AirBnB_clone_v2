@@ -1,12 +1,12 @@
 #!/usr/bin/python3
-""" Module for testing file storage """
+""" Module for testing file storage"""
 import unittest
 from models.base_model import BaseModel
 from models import storage
 import os
 
 
-class TestFileStorage(unittest.TestCase):
+class test_fileStorage(unittest.TestCase):
     """ Class to test the file storage method """
 
     def setUp(self):
@@ -42,7 +42,7 @@ class TestFileStorage(unittest.TestCase):
         self.assertIsInstance(temp, dict)
 
     def test_base_model_instantiation(self):
-        """ File is not created on BaseModel instantiation """
+        """ File is not created on BaseModel save """
         new = BaseModel()
         self.assertFalse(os.path.exists('file.json'))
 
@@ -78,11 +78,7 @@ class TestFileStorage(unittest.TestCase):
 
     def test_reload_from_nonexistent(self):
         """ Nothing happens if file does not exist """
-        try:
-            os.remove('file.json')
-        except FileNotFoundError:
-            pass
-        self.assertIsNone(storage.reload())
+        self.assertEqual(storage.reload(), None)
 
     def test_base_model_save(self):
         """ BaseModel save method calls storage save """
@@ -109,4 +105,5 @@ class TestFileStorage(unittest.TestCase):
     def test_storage_var_created(self):
         """ FileStorage object storage created """
         from models.engine.file_storage import FileStorage
+        print(type(storage))
         self.assertEqual(type(storage), FileStorage)
