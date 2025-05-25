@@ -141,7 +141,8 @@ Usage: <class_name>.update(<_id>, <dictionary>)
 ```
 <br>
 
-## Maintainer
+
+ Maintainer
 
 This project was forked and maintained by:
 
