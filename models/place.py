@@ -45,18 +45,27 @@ class Place(BaseModel, Base):
     if os.getenv("HBNB_TYPE_STORAGE") != "db":
         @property
         def reviews(self):
-            """Returns list of Review instances with place_id equal to current Place.id"""
+            """Returns the list of Review instances with place_id equals
+            to the current Place.id."""
+
             reviews = list(models.storage.all(Review).values())
-            return [review for review in reviews if review.place_id == self.id]
+
+            return list(
+                filter(lambda review: (review.place_id == self.id), reviews))
 
         @property
         def amenities(self):
-            """Returns list of Amenity instances based on amenity_ids"""
+            """Returns the list of Amenity instances based on
+            the attribute amenity_ids that contains all Amenity.id."""
+
             amenities = list(models.storage.all(Amenity).values())
-            return [amenity for amenity in amenities if amenity.id in self.amenity_ids]
+
+            return list(
+                filter(lambda amenity: (amenity.place_id in self.amenity_ids),
+                       amenities))
 
         @amenities.setter
-        def amenities(self, value):
-            """Adds Amenity.id to amenity_ids list only if value is an Amenity instance"""
-            if isinstance(value, Amenity):
+        def amenities(self, value=None):
+            """Adds ids in amenity_ids ."""
+            if isinstance(value, type(Amenity)):
                 self.amenity_ids.append(value.id)
