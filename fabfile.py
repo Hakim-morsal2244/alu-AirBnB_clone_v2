@@ -1,64 +1,50 @@
-from fabric import task
-from datetime import datetime
+#!/usr/bin/python
+from fabric.api import env, run, put, sudo, local
 from os.path import exists
-import os
+from datetime import datetime
 
-# Adjust this to the remote directory where the code should be deployed
-remote_dir = "/data/web_static/releases"
-current_symlink = "/data/web_static/current"
+env.hosts = ['3.86.189.117', '54.236.227.49']
+env.user = 'ubuntu'
 
-@task
-def do_pack(c):
-    """Generate a .tgz archive from the contents of the web_static folder."""
-    if not os.path.exists("versions"):
-        os.makedirs("versions")
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    archive_path = f"versions/web_static_{timestamp}.tgz"
-    print(f"📦 Packing web_static to {archive_path}...")
-    result = c.local(f"tar -cvzf {archive_path} web_static", hide=False)
-    if result.ok:
-        print(f"✅ Archive created: {archive_path}")
-        return archive_path
-    else:
-        print("❌ Failed to create archive")
+
+def do_pack():
+    """Create a .tgz archive from web_static/ folder"""
+    try:
+        local("mkdir -p versions")
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        archive = "versions/web_static_{}.tgz".format(timestamp)
+        local("tar -cvzf {} web_static".format(archive))
+        return archive
+    except:
         return None
 
-@task
-def do_deploy(c, archive_path):
-    """Distribute the archive to the web servers."""
+
+def do_deploy(archive_path):
+    """Distribute the archive to web servers"""
     if not exists(archive_path):
-        print("❌ Archive does not exist")
         return False
 
-    filename = os.path.basename(archive_path)
-    folder_name = filename.replace(".tgz", "")
-    remote_path = f"{remote_dir}/{folder_name}"
-
-    print(f"🚀 Deploying {filename} to {c.host}...")
+    file_name = archive_path.split("/")[-1]
+    folder_name = file_name.split(".")[0]
+    release_path = "/data/web_static/releases/{}".format(folder_name)
 
     try:
-        c.put(archive_path, f"/tmp/{filename}")
-        c.run(f"mkdir -p {remote_path}")
-        c.run(f"tar -xzf /tmp/{filename} -C {remote_path}")
-        c.run(f"rm /tmp/{filename}")
-        c.run(f"mv {remote_path}/web_static/* {remote_path}/")
-        c.run(f"rm -rf {remote_path}/web_static")
-        c.run(f"rm -rf {current_symlink}")
-        c.run(f"ln -s {remote_path} {current_symlink}")
-        print(f"✅ Successfully deployed on {c.host}")
+        put(archive_path, "/tmp/")
+        sudo("mkdir -p {}".format(release_path))
+        sudo("tar -xzf /tmp/{} -C {}".format(file_name, release_path))
+        sudo("rm /tmp/{}".format(file_name))
+        sudo("mv {}/web_static/* {}".format(release_path, release_path))
+        sudo("rm -rf {}/web_static".format(release_path))
+        sudo("rm -rf /data/web_static/current")
+        sudo("ln -s {} /data/web_static/current".format(release_path))
         return True
-    except Exception as e:
-        print(f"❌ Deployment failed on {c.host}: {e}")
+    except:
         return False
 
-@task
-def deploy(c):
-    """Create and distribute archive to web servers."""
-    print("📦 Starting full deployment...")
-    archive_path = do_pack(c)
-    if not archive_path:
-        print("❌ Packaging failed")
+
+def deploy():
+    """Automate full deployment"""
+    archive_path = do_pack()
+    if archive_path is None:
         return False
-    result = do_deploy(c, archive_path)
-    print("✅ Deployment finished!" if result else "❌ Deployment failed")
-    return result
+    return do_deploy(archive_path)
