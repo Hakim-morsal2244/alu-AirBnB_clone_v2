@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from fabric.api import env, run, put, sudo, local
 from os.path import exists
 from datetime import datetime
