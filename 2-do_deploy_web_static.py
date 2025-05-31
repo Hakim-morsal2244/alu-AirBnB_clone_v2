@@ -1,43 +1,35 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/python3
-"""distrutes the archive"""
-import os.path
-from fabric.api import env
-from fabric.api import put
-from fabric.api import run
+from fabric.api import env, run, put
+import os
 
-env.hosts = ["54.175.253.142", "34.239.255.28"]
-
+# ✅ Correct IPs of your web-01 and web-02 servers
+env.hosts = ['3.86.189.117', '54.236.227.49']
+env.user = 'ubuntu'
+env.key_filename = '~/.ssh/id_rsa'  # Make sure this is your private key path
 
 def do_deploy(archive_path):
-    """gives the archives
-    """
-    if os.path.isfile(archive_path) is False:
+    """Distributes an archive to the web servers."""
+    if not os.path.exists(archive_path):
         return False
-    fi = archive_path.split("/")[-1]
-    nme = fi.split(".")[0]
+    try:
+        file_name = archive_path.split("/")[-1]
+        folder_name = "/data/web_static/releases/" + file_name.split(".")[0]
 
-    if put(archive_path, "/tmp/{}".format(fi)).failed is True:
+        put(archive_path, "/tmp/")
+        run("mkdir -p {}".format(folder_name))
+        run("tar -xzf /tmp/{} -C {}".format(file_name, folder_name))
+        run("rm /tmp/{}".format(file_name))
+        run("mv {}/web_static/* {}".format(folder_name, folder_name))
+        run("rm -rf {}/web_static".format(folder_name))
+        run("rm -rf /data/web_static/current")
+        run("ln -s {} /data/web_static/current".format(folder_name))
+
+        # ✅ Create symlink so that /hbnb_static points to the deployed content
+        run("sudo ln -sf /data/web_static/current /var/www/html/hbnb_static")
+
+        print("New version deployed!")
+        return True
+    except Exception as e:
+        print("Deployment failed:", e)
         return False
-    if run("rm -rf /data/web_static/releases/{}/".
-           format(nme)).failed is True:
-        return False
-    if run("mkdir -p /data/web_static/releases/{}/".
-           format(nme)).failed is True:
-        return False
-    if run("tar -xzf /tmp/{} -C /data/web_static/releases/{}/".
-           format(fi, nme)).failed is True:
-        return False
-    if run("rm /tmp/{}".format(fi)).failed is True:
-        return False
-    if run("mv /data/web_static/releases/{}/web_static/* "
-           "/data/web_static/releases/{}/".format(nme, nme)).failed is True:
-        return False
-    if run("rm -rf /data/web_static/releases/{}/web_static".
-           format(nme)).failed is True:
-        return False
-    if run("rm -rf /data/web_static/current").failed is True:
-        return False
-    if run("ln -s /data/web_static/releases/{}/ /data/web_static/current".
-           format(nme)).failed is True:
-        return False
-    return True
