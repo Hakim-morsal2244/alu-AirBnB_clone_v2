@@ -65,6 +65,5 @@ class FileStorage:
             self.save()
 
     def close(self):
-        """ calls reload()
-        """
-        self.reload()
+    """Call reload() method for deserializing the JSON file to objects"""
+    self.reload()
